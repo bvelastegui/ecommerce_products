@@ -1,8 +1,8 @@
-const express = require("express");
-const cors = require("cors")
-require("dotenv").config();
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-const connectDB = require("./config/db");
+const connectDB = require('./config/db');
 
 //const usuariosRoutes = require("./routes/usuarios.routes");
 //const categoriasRoutes = require("./routes/categorias.routes");
@@ -15,19 +15,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/api", (req, res) => {
-    res.json({
-        message: "API Ecommerce funcionando correctamente"
-    })
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'API Ecommerce funcionando correctamente',
+  });
 });
 
-app.use("/api/products", require("./routes/products"));
+app.use('/api/products', require('./routes/products'));
 
 connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT} `);
-    });
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT} `);
+  });
 });
-
- 
-
