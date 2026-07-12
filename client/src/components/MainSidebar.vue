@@ -106,7 +106,10 @@ const items = computed(() => [
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton class="p-1!">
+              <SidebarMenuButton
+                class="p-1!"
+                @click="router.push({ name: 'Home' })"
+              >
                 <div
                   class="flex size-6 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-indigo-600 text-white text-xs font-bold leading-none"
                 >
