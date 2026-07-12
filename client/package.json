@@ -15,7 +15,12 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@primeuix/themes": "^3.0.0-rc.1",
+    "@tailwindcss/vite": "^4.3.2",
     "pinia": "^3.0.4",
+    "primevue": "^5.0.0-rc.1",
+    "tailwindcss": "^4.3.2",
+    "tailwindcss-primeui": "^0.6.1",
     "vue": "beta",
     "vue-router": "^5.1.0"
   },
