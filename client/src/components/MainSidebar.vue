@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Palette from '@primeicons/vue/palette';
 import Inbox from '@primeicons/vue/inbox';
@@ -87,7 +87,7 @@ const items = computed(() => [
     icon: Dollar,
     isActive: router.currentRoute.value.name === 'Payments',
     command: () => router.push({ name: 'Payments' }),
-  }
+  },
 ]);
 </script>
 
@@ -106,10 +106,7 @@ const items = computed(() => [
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                class="p-1!"
-                @click="router.push({ name: 'Home' })"
-              >
+              <SidebarMenuButton class="p-1!" @click="router.push({ name: 'Home' })">
                 <div
                   class="flex size-6 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-indigo-600 text-white text-xs font-bold leading-none"
                 >
@@ -127,10 +124,7 @@ const items = computed(() => [
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem v-for="item in items" :key="item.label">
-                  <SidebarMenuButton
-                    :isActive="item.isActive"
-                    @click="item.command()"
-                  >
+                  <SidebarMenuButton :isActive="item.isActive" @click="item.command()">
                     <component :is="item.icon" />
                     <span>{{ item.label }}</span>
                   </SidebarMenuButton>

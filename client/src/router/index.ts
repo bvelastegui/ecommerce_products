@@ -32,7 +32,7 @@ const router = createRouter({
       path: '/payments',
       name: 'Payments',
       component: () => import('../views/PaymentsView.vue'),
-    }
+    },
   ],
 });
 

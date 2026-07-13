@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 //Actualizar product
 router.put('/:id', async (req, res) => {
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     if (!updatedProduct) {
       return res.status(404).json({
         mensaje: 'Producto no encontrado',
