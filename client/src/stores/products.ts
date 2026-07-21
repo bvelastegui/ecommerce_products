@@ -82,10 +82,11 @@ export const useProductsStore = defineStore('products', () => {
     const defaultErrorMessage = 'Error al actualizar el producto';
     try {
       loading.value = true;
-      await axios.put(`/products/${id}`, product);
+      const response = await axios.patch<Product>(`/products/${id}`, product);
       const index = products.value.findIndex((p) => p._id === id);
       if (index !== -1) {
-        products.value[index] = product;
+        // La respuesta incluye la categoría populada que necesita la tabla
+        products.value[index] = response.data;
       }
     } catch (err) {
       if (isAxiosError(err)) {

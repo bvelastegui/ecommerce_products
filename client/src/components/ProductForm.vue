@@ -8,10 +8,12 @@ import {
   InputNumber,
   Divider,
   FileUpload,
+  Select,
   type FileUploadSelectEvent,
   type FileUploadRemoveEvent,
 } from 'primevue';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useCategoriesStore } from '@/stores/categories';
 import type { Product } from '@/models';
 import Plus from '@primeicons/vue/plus';
 import Minus from '@primeicons/vue/minus';
@@ -21,6 +23,12 @@ const visible = defineModel('visible', { type: Boolean, default: false });
 const product = defineModel<Product>({
   type: Object,
   required: true,
+});
+
+const categoriesStore = useCategoriesStore();
+
+onMounted(() => {
+  categoriesStore.fetchCategories();
 });
 
 // Referencia para guardar temporalmente los archivos seleccionados en el FileUpload
@@ -116,7 +124,15 @@ function handleClickOnSave() {
         </div>
         <div class="flex flex-col gap-1">
           <Label for="category" class="font-semibold">Categoría</Label>
-          <InputText id="category" v-model="product.categoryId" />
+          <Select
+            id="category"
+            v-model="product.categoryId"
+            :options="categoriesStore.categories"
+            option-label="name"
+            option-value="_id"
+            placeholder="Selecciona una categoría"
+            :loading="categoriesStore.loading"
+          />
         </div>
         <Divider />
         <div class="flex flex-col gap-2">

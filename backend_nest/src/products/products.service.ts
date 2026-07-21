@@ -16,7 +16,9 @@ export class ProductsService {
   async create(createProductDto: CreateProductDto): Promise<Product> {
     // Mongoose convierte automáticamente el categoryId de string a ObjectId
     const newProduct = new this.productModel(createProductDto);
-    return newProduct.save();
+    const savedProduct = await newProduct.save();
+    // Populamos la categoría para que la respuesta sea consistente con findAll
+    return savedProduct.populate('categoryId');
   }
 
   async findAll(): Promise<Product[]> {

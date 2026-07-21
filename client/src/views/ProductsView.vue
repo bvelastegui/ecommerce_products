@@ -4,7 +4,7 @@ import { DataTable, Column, Button, useConfirm, useToast } from 'primevue';
 import { useProductsStore } from '@/stores/products';
 import { onMounted, ref } from 'vue';
 import ProductForm from '@/components/ProductForm.vue';
-import type { Product } from '@/models';
+import type { Product, Category } from '@/models';
 import Plus from '@primeicons/vue/plus-circle';
 import Box from '@primeicons/vue/box';
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle';
@@ -78,31 +78,56 @@ function handleDelete(id: string) {
 }
 
 async function handleEdit(id: string) {
-  currentProduct.value = (await productsStore.fetchProductById(id)) || currentProduct.value;
+  const product = await productsStore.fetchProductById(id);
+  if (product) {
+    currentProduct.value = {
+      ...product,
+      // El backend popula categoryId; el Select del formulario necesita solo el id
+      categoryId: extractCategoryId(product.categoryId),
+    };
+  }
   showModal.value = true;
 }
 
-// 2. Nueva lógica para recibir datos + archivos y armar el FormData
+// categoryId puede venir populado (objeto Category) o como string
+function extractCategoryId(categoryId: Product['categoryId']): string | null {
+  if (categoryId && typeof categoryId === 'object') {
+    return (categoryId as unknown as Category)._id ?? null;
+  }
+  return categoryId ?? null;
+}
+
+// 2. Lógica para recibir datos + archivos: FormData al crear (imágenes), JSON al actualizar
 async function handleSubmitOnProductForm(payload: { productData: Product; files: File[] }) {
   const { productData, files } = payload;
-  const formData = new FormData();
 
-  // Agregamos todos los campos de texto al FormData
-  if (productData.name) formData.append('name', productData.name);
-  if (productData.description) formData.append('description', productData.description);
-  if (productData.basePrice) formData.append('basePrice', productData.basePrice.toString());
-  if (productData.categoryId) formData.append('categoryId', productData.categoryId);
-  if (productData.stock !== null) formData.append('stock', productData.stock!.toString());
-
-  // Iteramos sobre los archivos seleccionados y los agregamos bajo la clave 'images'
-  files.forEach((file) => {
-    formData.append('images', file);
-  });
-
-  // Enviamos el FormData a la Store en lugar de un objeto plano
   if (productData._id) {
-    await productsStore.updateProduct(productData._id, formData);
+    // El endpoint de actualización no acepta archivos: enviamos JSON solo con los campos del DTO
+    const jsonPayload: Product = {
+      name: productData.name,
+      description: productData.description,
+      basePrice: productData.basePrice,
+      categoryId: productData.categoryId,
+      stock: productData.stock,
+      images: productData.images,
+      isActive: productData.isActive,
+    };
+    await productsStore.updateProduct(productData._id, jsonPayload);
   } else {
+    const formData = new FormData();
+
+    // Agregamos todos los campos de texto al FormData
+    if (productData.name) formData.append('name', productData.name);
+    if (productData.description) formData.append('description', productData.description);
+    if (productData.basePrice) formData.append('basePrice', productData.basePrice.toString());
+    if (productData.categoryId) formData.append('categoryId', productData.categoryId);
+    if (productData.stock !== null) formData.append('stock', productData.stock!.toString());
+
+    // Iteramos sobre los archivos seleccionados y los agregamos bajo la clave 'images'
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+
     await productsStore.createProduct(formData);
   }
 
@@ -113,6 +138,13 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
       detail: 'El producto ha sido guardado correctamente.',
     });
     showModal.value = false;
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: productsStore.error,
+    });
+    productsStore.error = null;
   }
 }
 </script>
