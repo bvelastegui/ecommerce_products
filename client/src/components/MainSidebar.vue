@@ -22,7 +22,6 @@ import {
   SidebarFooter,
   SidebarContent,
   SidebarGroupContent,
-  SidebarMenuBadge,
   Avatar,
 } from 'primevue';
 

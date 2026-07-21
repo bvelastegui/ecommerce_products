@@ -2,9 +2,20 @@ import { Nullable } from '@primevue/core';
 
 interface Product {
   _id?: Nullable<string>;
-  title: Nullable<string>;
+  slug?: Nullable<string>;
+  name: Nullable<string>;
   description: Nullable<string>;
-  price: Nullable<number>;
+  basePrice: Nullable<number>;
+  categoryId: Nullable<string>;
+  images: Nullable<string[]>;
   stock: Nullable<number>;
-  category: Nullable<string>;
+  isActive?: Nullable<boolean>;
+}
+
+interface Category {
+  _id?: Nullable<string>;
+  slug?: Nullable<string>;
+  name: Nullable<string>;
+  description: Nullable<string>;
+  isActive?: Nullable<boolean>;
 }

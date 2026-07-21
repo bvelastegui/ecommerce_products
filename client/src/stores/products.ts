@@ -61,12 +61,12 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
-  async function createProduct(product: Product) {
+  async function createProduct(product: FormData) {
     const defaultErrorMessage = 'Error al crear el producto';
     try {
       loading.value = true;
-      await axios.post('/products', product);
-      products.value.push(product);
+      const newProduct = await axios.post('/products', product);
+      products.value.push(newProduct.data as Product);
     } catch (err) {
       if (isAxiosError(err)) {
         error.value = err.response?.data.message || defaultErrorMessage;
@@ -78,7 +78,7 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
-  async function updateProduct(id: string, product: any) {
+  async function updateProduct(id: string, product: Product) {
     const defaultErrorMessage = 'Error al actualizar el producto';
     try {
       loading.value = true;
