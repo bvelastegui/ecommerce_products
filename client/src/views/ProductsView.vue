@@ -97,33 +97,31 @@ function extractCategoryId(categoryId: Product['categoryId']): string | null {
   return categoryId ?? null;
 }
 
-// 2. Lógica para recibir datos + archivos: FormData al crear (imágenes), JSON al actualizar
+// 2. Lógica para recibir datos + archivos y armar el FormData (crear y actualizar)
 async function handleSubmitOnProductForm(payload: { productData: Product; files: File[] }) {
   const { productData, files } = payload;
+  const formData = new FormData();
+
+  // Agregamos todos los campos de texto al FormData
+  if (productData.name) formData.append('name', productData.name);
+  if (productData.description) formData.append('description', productData.description);
+  if (productData.basePrice) formData.append('basePrice', productData.basePrice.toString());
+  if (productData.categoryId) formData.append('categoryId', productData.categoryId);
+  if (productData.stock !== null) formData.append('stock', productData.stock!.toString());
 
   if (productData._id) {
-    // El endpoint de actualización no acepta archivos: enviamos JSON solo con los campos del DTO
-    const jsonPayload: Product = {
-      name: productData.name,
-      description: productData.description,
-      basePrice: productData.basePrice,
-      categoryId: productData.categoryId,
-      stock: productData.stock,
-      images: productData.images,
-      isActive: productData.isActive,
-    };
-    await productsStore.updateProduct(productData._id, jsonPayload);
+    // Al actualizar enviamos la lista de imágenes existentes que se conservan
+    // (las que el usuario quitó en el formulario ya no están en productData.images)
+    formData.append('images', JSON.stringify(productData.images ?? []));
+
+    // Los archivos nuevos viajan bajo la misma clave 'images'
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    await productsStore.updateProduct(productData._id, formData);
   } else {
-    const formData = new FormData();
-
-    // Agregamos todos los campos de texto al FormData
-    if (productData.name) formData.append('name', productData.name);
-    if (productData.description) formData.append('description', productData.description);
-    if (productData.basePrice) formData.append('basePrice', productData.basePrice.toString());
-    if (productData.categoryId) formData.append('categoryId', productData.categoryId);
-    if (productData.stock !== null) formData.append('stock', productData.stock!.toString());
-
-    // Iteramos sobre los archivos seleccionados y los agregamos bajo la clave 'images'
+    // Al crear, las imágenes son solo los archivos seleccionados
     files.forEach((file) => {
       formData.append('images', file);
     });

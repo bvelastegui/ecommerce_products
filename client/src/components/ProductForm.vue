@@ -17,6 +17,7 @@ import { useCategoriesStore } from '@/stores/categories';
 import type { Product } from '@/models';
 import Plus from '@primeicons/vue/plus';
 import Minus from '@primeicons/vue/minus';
+import Trash from '@primeicons/vue/trash';
 
 const emit = defineEmits(['toggle:visible', 'submit']);
 const visible = defineModel('visible', { type: Boolean, default: false });
@@ -30,6 +31,17 @@ const categoriesStore = useCategoriesStore();
 onMounted(() => {
   categoriesStore.fetchCategories();
 });
+
+// Las imágenes se sirven desde la raíz del servidor (no bajo /api)
+const serverUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(
+  /\/api\/?$/,
+  '',
+);
+
+// Quita una imagen existente de la lista que se conservará al guardar
+function handleRemoveExistingImage(index: number) {
+  product.value.images?.splice(index, 1);
+}
 
 // Referencia para guardar temporalmente los archivos seleccionados en el FileUpload
 const selectedFiles = ref<File[]>([]);
@@ -137,6 +149,25 @@ function handleClickOnSave() {
         <Divider />
         <div class="flex flex-col gap-2">
           <Label class="font-semibold">Imágenes del Producto</Label>
+          <!-- Imágenes actuales: al quitarlas aquí se eliminan al guardar -->
+          <div v-if="product.images && product.images.length > 0" class="flex flex-wrap gap-2">
+            <div v-for="(image, index) in product.images" :key="image" class="relative">
+              <img
+                :src="`${serverUrl}${image}`"
+                :alt="`Imagen ${index + 1} del producto`"
+                class="w-16 h-16 object-cover rounded border border-surface-200 dark:border-surface-700"
+              />
+              <Button
+                size="small"
+                severity="danger"
+                rounded
+                class="absolute! -top-2 -right-2 w-5! h-5! p-0!"
+                @click="handleRemoveExistingImage(index)"
+              >
+                <Trash class="w-3! h-3!" />
+              </Button>
+            </div>
+          </div>
           <FileUpload
             mode="advanced"
             name="images"

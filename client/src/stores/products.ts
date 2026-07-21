@@ -78,7 +78,7 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
-  async function updateProduct(id: string, product: Product) {
+  async function updateProduct(id: string, product: Product | FormData) {
     const defaultErrorMessage = 'Error al actualizar el producto';
     try {
       loading.value = true;

@@ -17,23 +17,23 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 
 // El prefijo 'products' significa que todas estas rutas colgarán de /products
+// Configuración compartida para el almacenamiento de imágenes
+const productImagesStorage = diskStorage({
+  destination: './uploads', // Asegúrate de crear esta carpeta en la raíz de tu proyecto
+  filename: (req, file, callback) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    callback(null, `${uniqueSuffix}${extname(file.originalname)}`);
+  },
+});
+
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productService: ProductsService) {}
 
   @Post()
   @UseInterceptors(
-    FilesInterceptor('images', 5, {
-      // Máximo 5 imágenes
-      storage: diskStorage({
-        destination: './uploads', // Asegúrate de crear esta carpeta en la raíz de tu proyecto
-        filename: (req, file, callback) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-    }),
+    // Máximo 5 imágenes
+    FilesInterceptor('images', 5, { storage: productImagesStorage }),
   )
   create(
     @Body() createProductDto: CreateProductDto,
@@ -74,8 +74,16 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(id, updateProductDto);
+  @UseInterceptors(
+    // Máximo 5 imágenes nuevas por actualización
+    FilesInterceptor('images', 5, { storage: productImagesStorage }),
+  )
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.productService.update(id, updateProductDto, files);
   }
 
   @Delete(':id')

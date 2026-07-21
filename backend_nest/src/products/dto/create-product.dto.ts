@@ -8,7 +8,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
@@ -33,6 +33,18 @@ export class CreateProductDto {
   @Type(() => Number)
   stock!: number;
 
+  // En peticiones multipart llega como string JSON con las rutas que se conservan;
+  // en peticiones JSON llega directamente como arreglo
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as string[];
+      } catch {
+        return [] as string[];
+      }
+    }
+    return value as string[];
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()

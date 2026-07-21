@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
 import { Product, ProductDocument } from './product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -62,19 +64,53 @@ export class ProductsService {
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
+    files?: Express.Multer.File[],
   ): Promise<Product> {
-    const updatedProduct = await this.productModel
-      .findByIdAndUpdate(id, updateProductDto, { new: true })
-      .populate('categoryId')
-      .exec();
+    const product = await this.productModel.findById(id).exec();
 
-    if (!updatedProduct) {
+    if (!product) {
       throw new NotFoundException(
         `Producto con ID ${id} no encontrado para actualizar`,
       );
     }
 
-    return updatedProduct;
+    const { images, ...productData } = updateProductDto;
+
+    // Rutas de los archivos recién subidos
+    const newImagePaths = files
+      ? files.map((file) => `/uploads/${file.filename}`)
+      : [];
+
+    if (images !== undefined) {
+      // El cliente envía la lista de imágenes que conserva:
+      // las que ya no están se eliminan también del disco
+      const removedImages = (product.images ?? []).filter(
+        (image) => !images.includes(image),
+      );
+      await this.deleteFilesFromDisk(removedImages);
+      product.images = [...images, ...newImagePaths];
+    } else if (newImagePaths.length > 0) {
+      // Sin lista explícita, solo agregamos las nuevas
+      product.images = [...(product.images ?? []), ...newImagePaths];
+    }
+
+    Object.assign(product, productData);
+
+    const updatedProduct = await product.save();
+    return updatedProduct.populate('categoryId');
+  }
+
+  // Elimina archivos del disco sin bloquear la actualización si alguno falla
+  private async deleteFilesFromDisk(imagePaths: string[]) {
+    await Promise.all(
+      imagePaths.map(async (imagePath) => {
+        try {
+          await unlink(join(process.cwd(), imagePath));
+        } catch {
+          // El archivo ya no existe o no se pudo eliminar: lo ignoramos
+        }
+      }),
+    );
   }
 
   async remove(id: string) {
