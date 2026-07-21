@@ -19,3 +19,20 @@ interface Category {
   description: Nullable<string>;
   isActive?: Nullable<boolean>;
 }
+
+interface Address {
+  _id?: Nullable<string>;
+  street: Nullable<string>;
+  city: Nullable<string>;
+  zipCode: Nullable<string>;
+  isDefault: boolean;
+}
+
+interface User {
+  _id?: Nullable<string>;
+  name: Nullable<string>;
+  email: Nullable<string>;
+  password?: Nullable<string>;
+  role: Nullable<string>;
+  addresses: Nullable<Address[]>;
+}
