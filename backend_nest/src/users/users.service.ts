@@ -30,6 +30,14 @@ export class UsersService {
     return user;
   }
 
+  // Para el login: incluye la contraseña que normalmente está excluida (select: false)
+  async findByEmailWithPassword(email: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({ email: email.toLowerCase() })
+      .select('+password')
+      .exec();
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     // Si se actualiza la contraseña, la hasheamos antes de guardar
     if (updateUserDto.password) {

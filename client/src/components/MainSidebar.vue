@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref, useTemplateRef} from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import Palette from '@primeicons/vue/palette';
 import Inbox from '@primeicons/vue/inbox';
 import Home from '@primeicons/vue/home';
 import Users from '@primeicons/vue/users';
 import Box from '@primeicons/vue/box';
 import Dollar from '@primeicons/vue/dollar';
+import ChevronDown from '@primeicons/vue/chevron-down';
+import SignOut from '@primeicons/vue/sign-out';
 import {
   Sidebar,
   SidebarBackdrop,
@@ -23,33 +26,30 @@ import {
   SidebarContent,
   SidebarGroupContent,
   Avatar,
+  Menu,
 } from 'primevue';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const isMobile = ref(false);
 const open = ref(true);
-let mql: MediaQueryList | null = null;
-let onMqlChange: null | ((event: MediaQueryListEvent) => void) = null;
-
-onMounted(() => {
-  if (typeof window === 'undefined') return;
-
-  mql = window.matchMedia('(max-width: 1023px)');
-  isMobile.value = mql.matches;
-  open.value = !isMobile.value;
-  onMqlChange = (event) => {
-    isMobile.value = event.matches;
-    open.value = !event.matches;
-  };
-  mql.addEventListener('change', onMqlChange);
-});
-
-onBeforeUnmount(() => {
-  if (mql && onMqlChange) {
-    mql.removeEventListener('change', onMqlChange);
+const userMenu = useTemplateRef('userMenu')
+const userMenuItems = [
+  {
+    label: 'Cerrar Sesión',
+    icon: SignOut,
+    command: () => handleLogout(),
   }
+]
+const userInitials = computed(() => {
+  if (!authStore.user?.name) return '?';
+  return authStore.user.name
+    .split(' ')
+    .map((word) => word.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 });
-
 const items = computed(() => [
   {
     label: 'Inicio',
@@ -88,6 +88,32 @@ const items = computed(() => [
     command: () => router.push({ name: 'Payments' }),
   },
 ]);
+
+let mql: MediaQueryList | null = null;
+let onMqlChange: null | ((event: MediaQueryListEvent) => void) = null;
+
+onMounted(() => {
+  if (typeof window === 'undefined') return;
+
+  mql = window.matchMedia('(max-width: 1023px)');
+  isMobile.value = mql.matches;
+  open.value = !isMobile.value;
+  onMqlChange = (event) => {
+    isMobile.value = event.matches;
+    open.value = !event.matches;
+  };
+  mql.addEventListener('change', onMqlChange);
+});
+onBeforeUnmount(() => {
+  if (mql && onMqlChange) {
+    mql.removeEventListener('change', onMqlChange);
+  }
+});
+
+function handleLogout() {
+  authStore.logout();
+  router.push({ name: 'Login' });
+}
 </script>
 
 <template>
@@ -136,10 +162,22 @@ const items = computed(() => [
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton class="p-1!">
-                <Avatar label="JD" shape="circle" class="size-6 shrink-0 text-xs" />
-                <span>John Doe</span>
+              <SidebarMenuButton
+                class="p-1!"
+                @click="(e: Event) => userMenu!.toggle(e)"
+                aria-haspopup="true"
+              >
+                <Avatar :label="userInitials" shape="circle" class="size-6 shrink-0 text-xs" />
+                <div class="flex flex-col items-start overflow-hidden">
+                  <span class="text-sm truncate max-w-full">{{ authStore.user?.name }}</span>
+                </div>
+                <ChevronDown class="ml-auto" />
               </SidebarMenuButton>
+              <Menu ref="userMenu" id="user_menu" :model="userMenuItems" :popup="true">
+                <template #start>
+                  <div class="px-3 py-1 text-xs font-medium text-muted-color">{{ authStore.user?.email }}</div>
+                </template>
+              </Menu>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

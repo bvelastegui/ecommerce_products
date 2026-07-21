@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { diskStorage } from 'multer';
@@ -15,6 +16,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
+import { AuthGuard } from '../auth/auth.guard';
 
 // El prefijo 'products' significa que todas estas rutas colgarán de /products
 // Configuración compartida para el almacenamiento de imágenes
@@ -27,6 +29,7 @@ const productImagesStorage = diskStorage({
 });
 
 @Controller('products')
+@UseGuards(AuthGuard)
 export class ProductsController {
   constructor(private readonly productService: ProductsService) {}
 

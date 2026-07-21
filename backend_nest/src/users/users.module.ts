@@ -10,5 +10,6 @@ import { UsersService } from './users.service';
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService], // Lo usa el módulo de autenticación
 })
 export class UsersModule {}
