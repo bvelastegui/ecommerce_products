@@ -123,13 +123,13 @@ async function handleSubmitOnCategoryForm(categoryData: Category) {
     @submit="handleSubmitOnCategoryForm"
   />
   <div class="flex-1 p-4 flex flex-col gap-4">
-    <div class="flex rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
+    <div class="flex rounded-lg bg-surface-100 dark:bg-surface-800 p-2">
       <Button class="ml-auto" @click="handleClickOnAdd">
         <Plus />
         Agregar Categoría
       </Button>
     </div>
-    <div class="rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
+    <div class="rounded-t-lg bg-surface-100 dark:bg-surface-800 p-1">
       <DataTable :value="categoriesStore.categories" :loading="categoriesStore.loading">
         <template #empty>
           <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
