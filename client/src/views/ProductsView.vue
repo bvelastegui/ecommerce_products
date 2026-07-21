@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import PageHeader from '@/components/PageHeader.vue';
-import { DataTable, Column, Button, useConfirm, useToast } from 'primevue';
+import { DataTable, Column, Button, Select, Tag, useConfirm, useToast } from 'primevue';
 import { useProductsStore } from '@/stores/products';
-import { onMounted, ref } from 'vue';
+import { useCategoriesStore } from '@/stores/categories';
+import { computed, onMounted, ref } from 'vue';
 import ProductForm from '@/components/ProductForm.vue';
 import type { Product, Category } from '@/models';
 import Plus from '@primeicons/vue/plus-circle';
@@ -12,7 +13,11 @@ import ExclamationTriangle from '@primeicons/vue/exclamation-triangle';
 const toast = useToast();
 const confirm = useConfirm();
 const productsStore = useProductsStore();
+const categoriesStore = useCategoriesStore();
 const showModal = ref(false);
+
+// Categoría seleccionada en el filtro de la tabla (null = todas)
+const selectedCategory = ref<string | null>(null);
 
 // 1. Actualizamos el estado base para que coincida con el backend simplificado
 const currentProduct = ref<Product>({
@@ -27,6 +32,15 @@ const currentProduct = ref<Product>({
 
 onMounted(() => {
   productsStore.fetchProducts();
+  categoriesStore.fetchCategories();
+});
+
+// Productos filtrados según la categoría seleccionada
+const filteredProducts = computed(() => {
+  if (!selectedCategory.value) return productsStore.products;
+  return productsStore.products.filter(
+    (product) => extractCategoryId(product.categoryId) === selectedCategory.value,
+  );
 });
 
 function formatCurrency(value: number) {
@@ -156,16 +170,25 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
     @submit="handleSubmitOnProductForm"
   />
   <div class="flex-1 p-4 flex flex-col gap-4">
-    <div class="flex rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
+    <div class="flex flex-wrap rounded-lg bg-surface-100 dark:bg-surface-800 p-2 gap-2">
+      <Select
+        v-model="selectedCategory"
+        :options="categoriesStore.categories"
+        option-label="name"
+        option-value="_id"
+        placeholder="Filtrar por categoría"
+        show-clear
+        :loading="categoriesStore.loading"
+        class="w-full md:w-72"
+      />
       <Button class="ml-auto" @click="handleClickOnAdd">
         <Plus />
         Agregar Producto
       </Button>
     </div>
-    <div class="rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
-      <DataTable :value="productsStore.products" :loading="productsStore.loading">
+    <div class="rounded-t-lg bg-surface-100 dark:bg-surface-800 p-1">
+      <DataTable :value="filteredProducts" :loading="productsStore.loading">
         <template #empty>
-          <!-- Tu template empty original intacto -->
           <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
             <div
               class="w-14 h-14 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center"
@@ -187,33 +210,37 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
           </div>
         </template>
 
-        <!-- 3. NUEVA COLUMNA: Miniatura de la imagen -->
-        <Column header="Imagen" header-class="rounded-tl-lg w-20">
+        <Column header="Producto" header-class="rounded-tl-lg" class="text-nowrap">
           <template #body="{ data }">
-            <!-- Asumiendo que tu backend de Nest corre en el puerto 3000 -->
-            <img
-              v-if="data.images && data.images.length > 0"
-              :src="`http://localhost:5000${data.images[0]}`"
-              :alt="data.name"
-              class="w-12 h-12 object-cover rounded border border-surface-200 dark:border-surface-700"
-            />
-            <div
-              v-else
-              class="w-12 h-12 bg-surface-100 dark:bg-surface-800 rounded flex items-center justify-center border border-surface-200 dark:border-surface-700"
-            >
-              <Box class="w-5 h-5 text-surface-400" />
+            <div class="flex items-center gap-3">
+              <img
+                v-if="data.images && data.images.length > 0"
+                :src="`http://localhost:5000${data.images[0]}`"
+                :alt="data.name"
+                class="shrink-0 w-12 h-12 object-cover rounded-md shadow"
+              />
+              <div
+                v-else
+                class="w-12 h-12 bg-surface-100 dark:bg-surface-800 rounded flex items-center justify-center border border-surface-200 dark:border-surface-700"
+              >
+                <Box class="w-5 h-5 text-surface-400" />
+              </div>
+              <div class="flex flex-col">
+                <span class="font-medium">{{ data.name }}</span>
+                <span class="text-xs text-surface-500 dark:text-surface-400">{{ data.slug }}</span>
+              </div>
             </div>
           </template>
         </Column>
-
-        <Column field="name" header="Titulo" />
-        <Column field="description" header="Descripción" />
-        <!-- Si poblaste la categoría en Nest, esto podría ser data.categoryId.name -->
-        <Column field="categoryId.name" header="Categoría" />
+        <Column header="Categoría" class="text-nowrap">
+          <template #body="{ data }">
+            <Tag :value="data.categoryId.name" severity="secondary" />
+          </template>
+        </Column>
         <Column field="stock" header="Stock" />
         <Column header="Precio">
           <template #body="{ data }">
-            {{ formatCurrency(data.basePrice) }}
+            <span class="font-semibold">{{ formatCurrency(data.basePrice) }}</span>
           </template>
         </Column>
         <Column
@@ -224,12 +251,20 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
         >
           <template #body="{ data }">
             <div class="flex gap-2 justify-end">
-              <Button size="small" severity="danger" @click="handleDelete(data._id)"
-                >Eliminar</Button
+              <Button
+                size="small"
+                severity="danger"
+                @click="handleDelete(data._id)"
               >
-              <Button size="small" severity="secondary" @click="handleEdit(data._id)"
-                >Editar</Button
+                Eliminar
+              </Button>
+              <Button
+                size="small"
+                severity="secondary"
+                @click="handleEdit(data._id)"
               >
+                Editar
+              </Button>
             </div>
           </template>
         </Column>

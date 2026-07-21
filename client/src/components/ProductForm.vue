@@ -12,7 +12,7 @@ import {
   type FileUploadSelectEvent,
   type FileUploadRemoveEvent,
 } from 'primevue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useCategoriesStore } from '@/stores/categories';
 import type { Product } from '@/models';
 import Plus from '@primeicons/vue/plus';
@@ -26,11 +26,8 @@ const product = defineModel<Product>({
   required: true,
 });
 
+// Las categorías las carga la vista (ProductsView)
 const categoriesStore = useCategoriesStore();
-
-onMounted(() => {
-  categoriesStore.fetchCategories();
-});
 
 // Las imágenes se sirven desde la raíz del servidor (no bajo /api)
 const serverUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(
