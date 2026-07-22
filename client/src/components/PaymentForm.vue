@@ -127,19 +127,18 @@ function handleClickOnSave() {
             placeholder="Selecciona un método"
           />
         </div>
-        <div class="flex justify-between items-center rounded-lg bg-surface-100 dark:bg-surface-900 p-3">
+        <div
+          class="flex justify-between items-center rounded-lg bg-surface-100 dark:bg-surface-900 p-3"
+        >
           <span class="text-sm text-surface-500">Monto a pagar</span>
           <span class="font-semibold">{{ formatCurrency(selectedOrderTotal) }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <Label for="simulateFailure" class="font-semibold">
-            Simular pago rechazado
-          </Label>
+          <Label for="simulateFailure" class="font-semibold"> Simular pago rechazado </Label>
           <ToggleSwitch id="simulateFailure" v-model="simulateFailure" />
         </div>
         <Message severity="info" :closable="false">
-          Si el pago es exitoso, la orden pasará a estado Pagado y se descontará el
-          stock reservado.
+          Si el pago es exitoso, la orden pasará a estado Pagado y se descontará el stock reservado.
         </Message>
       </div>
       <template #footer>

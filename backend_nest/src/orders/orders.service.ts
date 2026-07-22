@@ -112,7 +112,10 @@ export class OrdersService {
 
     // Los items solo se pueden modificar mientras la orden está pendiente
     // Pero si los items no cambian (ej. solo se actualiza estado), se ignoran
-    if (updateOrderDto.items && !this.itemsAreEqual(order.items, updateOrderDto.items)) {
+    if (
+      updateOrderDto.items &&
+      !this.itemsAreEqual(order.items, updateOrderDto.items)
+    ) {
       if (order.status !== 'pending') {
         throw new BadRequestException(
           `No se pueden modificar los items de una orden en estado '${order.status}'`,
@@ -123,8 +126,8 @@ export class OrdersService {
       // misma orden deben contar como disponibles al re-reservar
       await this.releaseReservations(order.items);
       try {
-        const {items, ...totals} = await this.buildItems(
-            updateOrderDto.items,
+        const { items, ...totals } = await this.buildItems(
+          updateOrderDto.items,
         );
         order.items = items;
         Object.assign(order, totals);
@@ -132,20 +135,21 @@ export class OrdersService {
         // Rollback: intentamos restaurar las reservas originales
         try {
           await this.buildItems(
-              order.items.map((item) => ({
-                product: item.product.toString(),
-                quantity: item.quantity,
-              })),
+            order.items.map((item) => ({
+              product: item.product.toString(),
+              quantity: item.quantity,
+            })),
           );
         } catch (rollbackErr) {
           this.logger.error(
-              `No se pudieron restaurar las reservas de la orden ${order._id.toString()}`,
-              rollbackErr,
+            `No se pudieron restaurar las reservas de la orden ${order._id.toString()}`,
+            rollbackErr,
           );
         }
         throw err;
       }
     }
+
     if (updateOrderDto.user) {
       await this.validateUserExists(updateOrderDto.user);
       order.user = updateOrderDto.user as unknown as Types.ObjectId;

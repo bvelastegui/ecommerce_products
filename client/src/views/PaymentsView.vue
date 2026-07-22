@@ -152,9 +152,7 @@ async function handleSubmitOnPaymentForm(paymentData: Payment) {
               <Box class="w-6! h-6! text-surface-400 dark:text-surface-500" />
             </div>
             <div>
-              <p class="m-0 font-semibold text-surface-900 dark:text-surface-0">
-                No existen pagos
-              </p>
+              <p class="m-0 font-semibold text-surface-900 dark:text-surface-0">No existen pagos</p>
               <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">
                 Registra el primer pago de una orden pendiente
               </p>
