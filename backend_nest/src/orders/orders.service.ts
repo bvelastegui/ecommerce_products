@@ -92,56 +92,8 @@ export class OrdersService {
     const order = await this.orderModel.findById(id).exec();
     if (!order) throw new NotFoundException(`Orden ${id} no encontrada`);
 
-    // Los items solo se pueden modificar mientras la orden está pendiente
-    if (updateOrderDto.items) {
-      if (order.status !== 'pending') {
-        throw new BadRequestException(
-          `No se pueden modificar los items de una orden en estado '${order.status}'`,
-        );
-      }
-
-      // Si los items no cambiaron (ej. solo se actualizó el estado),
-      // conservamos los snapshots y reservas existentes sin tocar el stock
-      if (!this.itemsAreEqual(order.items, updateOrderDto.items)) {
-        // Liberamos primero las reservas actuales: los productos de esta
-        // misma orden deben contar como disponibles al re-reservar
-        await this.releaseReservations(order.items);
-        try {
-          const { items, ...totals } = await this.buildItems(
-            updateOrderDto.items,
-          );
-          order.items = items;
-          Object.assign(order, totals);
-        } catch (err) {
-          // Rollback: intentamos restaurar las reservas originales
-          try {
-            await this.buildItems(
-              order.items.map((item) => ({
-                product: item.product.toString(),
-                quantity: item.quantity,
-              })),
-            );
-          } catch (rollbackErr) {
-            this.logger.error(
-              `No se pudieron restaurar las reservas de la orden ${order._id.toString()}`,
-              rollbackErr,
-            );
-          }
-          throw err;
-        }
-      }
-    }
-
-    if (updateOrderDto.user) {
-      await this.validateUserExists(updateOrderDto.user);
-      order.user = updateOrderDto.user as unknown as Types.ObjectId;
-    }
-
-    if (updateOrderDto.shippingAddress) {
-      order.shippingAddress = updateOrderDto.shippingAddress;
-    }
-
     // Cambio de estado: validamos la transición y movemos el stock
+    // Ejecutamos primero para evitar bloquear cambios de estado válidos
     if (updateOrderDto.status && updateOrderDto.status !== order.status) {
       this.assertValidTransition(order.status, updateOrderDto.status);
 
@@ -156,6 +108,51 @@ export class OrdersService {
       }
 
       order.status = updateOrderDto.status;
+    }
+
+    // Los items solo se pueden modificar mientras la orden está pendiente
+    // Pero si los items no cambian (ej. solo se actualiza estado), se ignoran
+    if (updateOrderDto.items && !this.itemsAreEqual(order.items, updateOrderDto.items)) {
+      if (order.status !== 'pending') {
+        throw new BadRequestException(
+          `No se pueden modificar los items de una orden en estado '${order.status}'`,
+        );
+      }
+
+      // Liberamos primero las reservas actuales: los productos de esta
+      // misma orden deben contar como disponibles al re-reservar
+      await this.releaseReservations(order.items);
+      try {
+        const {items, ...totals} = await this.buildItems(
+            updateOrderDto.items,
+        );
+        order.items = items;
+        Object.assign(order, totals);
+      } catch (err) {
+        // Rollback: intentamos restaurar las reservas originales
+        try {
+          await this.buildItems(
+              order.items.map((item) => ({
+                product: item.product.toString(),
+                quantity: item.quantity,
+              })),
+          );
+        } catch (rollbackErr) {
+          this.logger.error(
+              `No se pudieron restaurar las reservas de la orden ${order._id.toString()}`,
+              rollbackErr,
+          );
+        }
+        throw err;
+      }
+    }
+    if (updateOrderDto.user) {
+      await this.validateUserExists(updateOrderDto.user);
+      order.user = updateOrderDto.user as unknown as Types.ObjectId;
+    }
+
+    if (updateOrderDto.shippingAddress) {
+      order.shippingAddress = updateOrderDto.shippingAddress;
     }
 
     const updatedOrder = await order.save();
