@@ -18,9 +18,9 @@ const isPublic = computed(() => !!route.meta.public);
       <RouterView />
     </div>
     <!-- Panel de administración -->
-    <SidebarLayout v-else class="min-h-full! relative!">
+    <SidebarLayout v-else class="h-full! relative!">
       <MainSidebar />
-      <SidebarMain>
+      <SidebarMain class="h-full overflow-y-auto">
         <ConfirmDialog />
         <Toast />
         <RouterView />

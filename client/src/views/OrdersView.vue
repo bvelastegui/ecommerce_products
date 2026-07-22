@@ -246,7 +246,7 @@ async function saveNewAddressToUser(userId: string, newAddress: ShippingAddress)
       </Button>
     </div>
     <div class="rounded-t-lg bg-surface-100 dark:bg-surface-800 p-1">
-      <DataTable :value="ordersStore.orders" :loading="ordersStore.loading">
+      <DataTable paginator :rows="10"  :value="ordersStore.orders" :loading="ordersStore.loading">
         <template #empty>
           <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
             <div
