@@ -130,7 +130,12 @@ async function handleSubmitOnCategoryForm(categoryData: Category) {
       </Button>
     </div>
     <div class="rounded-t-lg bg-surface-100 dark:bg-surface-800 p-1">
-      <DataTable paginator :rows="10"  :value="categoriesStore.categories" :loading="categoriesStore.loading">
+      <DataTable
+        paginator
+        :rows="10"
+        :value="categoriesStore.categories"
+        :loading="categoriesStore.loading"
+      >
         <template #empty>
           <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
             <div
