@@ -10,11 +10,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const loading = ref(true);
   const error = ref<string | null>(null);
 
-  async function fetchDashboard() {
+  async function fetchDashboard(range: string = 'year') {
     const defaultErrorMessage = 'Error al obtener el dashboard';
     try {
       loading.value = true;
-      const response = await axios.get<Dashboard>('/dashboard');
+      const response = await axios.get<Dashboard>('/dashboard', { params: { range } });
       dashboard.value = response.data;
     } catch (err) {
       if (isAxiosError(err)) {

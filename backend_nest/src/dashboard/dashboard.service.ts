@@ -13,6 +13,9 @@ const SALE_STATUSES = ['paid', 'sent', 'delivered'];
 // Umbral de "stock bajo": disponible (stock - reservado) menor o igual a esto
 const LOW_STOCK_THRESHOLD = 10;
 
+export type DashboardRange = 'week' | 'month' | 'semester' | 'year';
+const VALID_RANGES: DashboardRange[] = ['week', 'month', 'semester', 'year'];
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -23,7 +26,15 @@ export class DashboardService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
-  async getDashboard() {
+  async getDashboard(range?: string) {
+    const normalizedRange: DashboardRange = VALID_RANGES.includes(
+      range as DashboardRange,
+    )
+      ? (range as DashboardRange)
+      : 'year';
+
+    const startDate = this.getStartDate(normalizedRange);
+
     const [
       summary,
       salesByMonth,
@@ -33,16 +44,18 @@ export class DashboardService {
       recentOrders,
       lowStockProducts,
     ] = await Promise.all([
-      this.getSummary(),
-      this.getSalesByMonth(),
-      this.getOrdersByStatus(),
-      this.getTopProducts(),
-      this.getPaymentsByMethod(),
-      this.getRecentOrders(),
-      this.getLowStockProducts(),
+      this.getSummary(startDate),
+      this.getSalesByMonth(startDate),
+      this.getOrdersByStatus(startDate),
+      this.getTopProducts(startDate),
+      this.getPaymentsByMethod(startDate),
+      this.getRecentOrders(startDate),
+      this.getLowStockProducts(), // el inventario no se filtra por rango
     ]);
 
     return {
+      range: normalizedRange,
+      rangeStart: startDate,
       summary,
       salesByMonth,
       ordersByStatus,
@@ -53,28 +66,65 @@ export class DashboardService {
     };
   }
 
-  private async getSummary() {
+  // Calcula la fecha de inicio del rango seleccionado
+  private getStartDate(range: DashboardRange): Date {
+    const now = new Date();
+
+    switch (range) {
+      case 'week': {
+        // Semana calendario (lunes a hoy)
+        const dayOfWeek = now.getDay(); // 0=domingo .. 6=sábado
+        const diffToMonday = (dayOfWeek + 6) % 7;
+        const start = new Date(now);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - diffToMonday);
+        return start;
+      }
+      case 'month':
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+      case 'semester': {
+        // "Quimestre": bloques de 6 meses del año (ene-jun / jul-dic)
+        const startMonth = now.getMonth() < 6 ? 0 : 6;
+        return new Date(now.getFullYear(), startMonth, 1);
+      }
+      case 'year':
+      default:
+        return new Date(now.getFullYear(), 0, 1);
+    }
+  }
+
+  private dateFilter(startDate: Date): { createdAt: { $gte: Date } } {
+    return { createdAt: { $gte: startDate } };
+  }
+
+  private async getSummary(startDate: Date) {
+    const dateMatch = this.dateFilter(startDate);
+
     const [
-      totalOrders,
       totalUsers,
       totalProducts,
       totalCategories,
+      totalOrders,
+      pendingOrders,
+      canceledOrders,
       revenueResult,
       salesCountResult,
     ] = await Promise.all([
-      this.orderModel.countDocuments().exec(),
       this.userModel.countDocuments({ role: 'client' }).exec(),
       this.productModel.countDocuments().exec(),
       this.categoryModel.countDocuments().exec(),
+      this.orderModel.countDocuments(dateMatch).exec(),
+      this.orderModel.countDocuments({ ...dateMatch, status: 'pending' }).exec(),
+      this.orderModel.countDocuments({ ...dateMatch, status: 'canceled' }).exec(),
       this.paymentModel
         .aggregate([
-          { $match: { status: 'completed' } },
+          { $match: { ...dateMatch, status: 'completed' } },
           { $group: { _id: null, total: { $sum: '$amount' } } },
         ])
         .exec(),
       this.orderModel
         .aggregate([
-          { $match: { status: { $in: SALE_STATUSES } } },
+          { $match: { ...dateMatch, status: { $in: SALE_STATUSES } } },
           { $count: 'count' },
         ])
         .exec(),
@@ -82,12 +132,6 @@ export class DashboardService {
 
     const totalRevenue = revenueResult[0]?.total ?? 0;
     const completedSales = salesCountResult[0]?.count ?? 0;
-    const pendingOrders = await this.orderModel
-      .countDocuments({ status: 'pending' })
-      .exec();
-    const canceledOrders = await this.orderModel
-      .countDocuments({ status: 'canceled' })
-      .exec();
 
     return {
       totalRevenue: this.round(totalRevenue),
@@ -108,10 +152,10 @@ export class DashboardService {
   }
 
   // Ingresos y cantidad de órdenes por mes (para el gráfico de tendencia)
-  private async getSalesByMonth() {
+  private async getSalesByMonth(startDate: Date) {
     const result = await this.orderModel
       .aggregate([
-        { $match: { status: { $in: SALE_STATUSES } } },
+        { $match: { ...this.dateFilter(startDate), status: { $in: SALE_STATUSES } } },
         {
           $group: {
             _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
@@ -131,9 +175,12 @@ export class DashboardService {
   }
 
   // Cantidad de órdenes por estado (para el gráfico de dona)
-  private async getOrdersByStatus() {
+  private async getOrdersByStatus(startDate: Date) {
     const result = await this.orderModel
-      .aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+      .aggregate([
+        { $match: this.dateFilter(startDate) },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ])
       .exec();
 
     return result.map((row) => ({
@@ -143,10 +190,10 @@ export class DashboardService {
   }
 
   // Productos más vendidos por cantidad (solo ventas efectivas)
-  private async getTopProducts() {
+  private async getTopProducts(startDate: Date) {
     const result = await this.orderModel
       .aggregate([
-        { $match: { status: { $in: SALE_STATUSES } } },
+        { $match: { ...this.dateFilter(startDate), status: { $in: SALE_STATUSES } } },
         { $unwind: '$items' },
         {
           $group: {
@@ -154,9 +201,7 @@ export class DashboardService {
             name: { $first: '$items.productName' },
             quantitySold: { $sum: '$items.quantity' },
             revenue: {
-              $sum: {
-                $multiply: ['$items.quantity', '$items.priceAtPurchase'],
-              },
+              $sum: { $multiply: ['$items.quantity', '$items.priceAtPurchase'] },
             },
           },
         },
@@ -174,10 +219,10 @@ export class DashboardService {
   }
 
   // Distribución de pagos completados por método
-  private async getPaymentsByMethod() {
+  private async getPaymentsByMethod(startDate: Date) {
     const result = await this.paymentModel
       .aggregate([
-        { $match: { status: 'completed' } },
+        { $match: { ...this.dateFilter(startDate), status: 'completed' } },
         {
           $group: {
             _id: '$method',
@@ -195,16 +240,17 @@ export class DashboardService {
     }));
   }
 
-  private async getRecentOrders() {
+  private async getRecentOrders(startDate: Date) {
     return this.orderModel
-      .find()
+      .find(this.dateFilter(startDate))
       .populate('user')
       .sort({ createdAt: -1 })
       .limit(8)
       .exec();
   }
 
-  // Productos con disponible (stock - reservado) por debajo del umbral
+  // Productos con disponible (stock - reservado) por debajo del umbral.
+  // Es una foto del inventario actual: no se filtra por rango de fechas
   private async getLowStockProducts() {
     return this.productModel
       .aggregate([

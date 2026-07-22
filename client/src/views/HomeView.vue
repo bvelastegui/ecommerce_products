@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import PageHeader from '@/components/PageHeader.vue';
-import { DataTable, Column, Tag, Skeleton, Button } from 'primevue';
+import { DataTable, Column, Tag, Skeleton, Button, SelectButton } from 'primevue';
 import Chart from 'primevue/chart';
 import { useDashboardStore } from '@/stores/dashboard';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import Dollar from '@primeicons/vue/dollar';
 import Wallet from '@primeicons/vue/wallet';
 import Inbox from '@primeicons/vue/inbox';
@@ -14,8 +14,21 @@ import Refresh from '@primeicons/vue/refresh';
 
 const dashboardStore = useDashboardStore();
 
+// Rango de fechas a consultar en el dashboard
+const rangeOptions = [
+  { label: 'Esta Semana', value: 'week' },
+  { label: 'Este Mes', value: 'month' },
+  { label: 'Este Quimestre', value: 'semester' },
+  { label: 'Este Año', value: 'year' },
+];
+const selectedRange = ref('year');
+
 onMounted(() => {
-  dashboardStore.fetchDashboard();
+  dashboardStore.fetchDashboard(selectedRange.value);
+});
+
+watch(selectedRange, (range) => {
+  dashboardStore.fetchDashboard(range);
 });
 
 function formatCurrency(value: number) {
@@ -208,12 +221,19 @@ const paymentsChartData = computed(() => {
 <template>
   <PageHeader title="Inicio" />
   <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-scroll">
-    <div class="flex justify-end">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <SelectButton
+        v-model="selectedRange"
+        :options="rangeOptions"
+        option-label="label"
+        option-value="value"
+        :allow-empty="false"
+      />
       <Button
         size="small"
         severity="secondary"
         :loading="dashboardStore.loading"
-        @click="dashboardStore.fetchDashboard"
+        @click="dashboardStore.fetchDashboard(selectedRange)"
       >
         <Refresh />
         Actualizar

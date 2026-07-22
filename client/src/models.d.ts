@@ -123,6 +123,8 @@ interface DashboardLowStockProduct {
 }
 
 interface Dashboard {
+  range?: string;
+  rangeStart?: string;
   summary: DashboardSummary;
   salesByMonth: DashboardSalesByMonth[];
   ordersByStatus: DashboardOrdersByStatus[];
