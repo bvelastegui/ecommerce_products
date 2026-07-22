@@ -238,6 +238,11 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
           </template>
         </Column>
         <Column field="stock" header="Stock" />
+        <Column header="Reservado">
+          <template #body="{ data }">
+            {{ data.reservedStock ?? 0 }}
+          </template>
+        </Column>
         <Column header="Precio">
           <template #body="{ data }">
             <span class="font-semibold">{{ formatCurrency(data.basePrice) }}</span>
@@ -251,18 +256,10 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
         >
           <template #body="{ data }">
             <div class="flex gap-2 justify-end">
-              <Button
-                size="small"
-                severity="danger"
-                @click="handleDelete(data._id)"
-              >
+              <Button size="small" severity="danger" @click="handleDelete(data._id)">
                 Eliminar
               </Button>
-              <Button
-                size="small"
-                severity="secondary"
-                @click="handleEdit(data._id)"
-              >
+              <Button size="small" severity="secondary" @click="handleEdit(data._id)">
                 Editar
               </Button>
             </div>

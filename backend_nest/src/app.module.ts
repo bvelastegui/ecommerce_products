@@ -4,10 +4,12 @@ import { AppService } from './app.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ProductsModule } from './products/products.module';
 import { CategoryModule } from './category/category.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -21,10 +23,12 @@ import { AuthModule } from './auth/auth.module';
       },
     ),
     MongooseModule.forRoot('mongodb://localhost:27017/ecommerce'),
+    ScheduleModule.forRoot(),
     ProductsModule,
     CategoryModule,
     UsersModule,
     AuthModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

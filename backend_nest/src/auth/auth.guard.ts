@@ -17,7 +17,9 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('Token de autenticación no proporcionado');
+      throw new UnauthorizedException(
+        'Token de autenticación no proporcionado',
+      );
     }
 
     try {

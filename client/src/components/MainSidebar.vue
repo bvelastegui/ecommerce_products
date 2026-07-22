@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref, useTemplateRef} from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import Palette from '@primeicons/vue/palette';
@@ -33,14 +33,14 @@ const router = useRouter();
 const authStore = useAuthStore();
 const isMobile = ref(false);
 const open = ref(true);
-const userMenu = useTemplateRef('userMenu')
+const userMenu = useTemplateRef('userMenu');
 const userMenuItems = [
   {
     label: 'Cerrar Sesión',
     icon: SignOut,
     command: () => handleLogout(),
-  }
-]
+  },
+];
 const userInitials = computed(() => {
   if (!authStore.user?.name) return '?';
   return authStore.user.name
@@ -175,7 +175,9 @@ function handleLogout() {
               </SidebarMenuButton>
               <Menu ref="userMenu" id="user_menu" :model="userMenuItems" :popup="true">
                 <template #start>
-                  <div class="px-3 py-1 text-xs font-medium text-muted-color">{{ authStore.user?.email }}</div>
+                  <div class="px-3 py-1 text-xs font-medium text-muted-color">
+                    {{ authStore.user?.email }}
+                  </div>
                 </template>
               </Menu>
             </SidebarMenuItem>

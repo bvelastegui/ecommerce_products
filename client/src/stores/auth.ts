@@ -34,9 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       if (isAxiosError(err)) {
         const message = err.response?.data.message;
-        error.value = Array.isArray(message)
-          ? message.join(', ')
-          : message || defaultErrorMessage;
+        error.value = Array.isArray(message) ? message.join(', ') : message || defaultErrorMessage;
       } else {
         error.value = defaultErrorMessage;
       }

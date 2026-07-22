@@ -23,6 +23,11 @@ export class Product {
   @Prop({ required: true, min: 0 })
   stock!: number;
 
+  // Stock bloqueado por órdenes pendientes de pago.
+  // Disponible para nuevas órdenes = stock - reservedStock
+  @Prop({ default: 0, min: 0 })
+  reservedStock!: number;
+
   @Prop({ type: [String], default: [] })
   images?: string[];
 

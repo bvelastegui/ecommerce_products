@@ -23,7 +23,9 @@ async function handleSubmit() {
 
 <template>
   <div class="flex-1 flex items-center justify-center bg-surface-100 dark:bg-surface-900 p-4">
-    <div class="w-full max-w-sm rounded-lg bg-surface-0 dark:bg-surface-800 p-8 shadow-sm border border-surface-200 dark:border-surface-700">
+    <div
+      class="w-full max-w-sm rounded-lg bg-surface-0 dark:bg-surface-800 p-8 shadow-sm border border-surface-200 dark:border-surface-700"
+    >
       <div class="flex flex-col items-center gap-2 mb-6">
         <div
           class="flex size-10 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-indigo-600 text-white text-lg font-bold"
@@ -51,21 +53,12 @@ async function handleSubmit() {
         </div>
         <div class="flex flex-col gap-1">
           <Label for="password" class="font-semibold">Contraseña</Label>
-          <Password
-            id="password"
-            v-model="password"
-            :feedback="false"
-            toggle-mask
-            required
-            fluid
-          />
+          <Password id="password" v-model="password" :feedback="false" toggle-mask required fluid />
         </div>
         <Message v-if="authStore.error" severity="error" :closable="false">
           {{ authStore.error }}
         </Message>
-        <Button type="submit" :loading="authStore.loading" class="mt-2">
-          Ingresar
-        </Button>
+        <Button type="submit" :loading="authStore.loading" class="mt-2"> Ingresar </Button>
       </form>
     </div>
   </div>

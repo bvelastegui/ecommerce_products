@@ -9,6 +9,7 @@ interface Product {
   categoryId: Nullable<string>;
   images: Nullable<string[]>;
   stock: Nullable<number>;
+  reservedStock?: Nullable<number>;
   isActive?: Nullable<boolean>;
 }
 
@@ -35,4 +36,31 @@ interface User {
   password?: Nullable<string>;
   role: Nullable<string>;
   addresses: Nullable<Address[]>;
+}
+
+interface OrderItem {
+  _id?: Nullable<string>;
+  product: Nullable<string>;
+  productName?: Nullable<string>;
+  quantity: Nullable<number>;
+  priceAtPurchase?: Nullable<number>;
+}
+
+interface ShippingAddress {
+  street: Nullable<string>;
+  city: Nullable<string>;
+  zipCode: Nullable<string>;
+}
+
+interface Order {
+  _id?: Nullable<string>;
+  user: Nullable<string>;
+  items: Nullable<OrderItem[]>;
+  shippingAddress?: Nullable<ShippingAddress>;
+  subTotal?: Nullable<number>;
+  tax?: Nullable<number>;
+  total?: Nullable<number>;
+  status?: Nullable<string>;
+  expiresAt?: Nullable<string>;
+  createdAt?: Nullable<string>;
 }

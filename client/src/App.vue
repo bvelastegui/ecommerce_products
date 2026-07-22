@@ -11,9 +11,7 @@ const isPublic = computed(() => !!route.meta.public);
 </script>
 
 <template>
-  <div
-    class="border border-surface-200 dark:border-surface-700 h-screen overflow-hidden"
-  >
+  <div class="border border-surface-200 dark:border-surface-700 h-screen overflow-hidden">
     <!-- Rutas públicas: pantalla completa sin sidebar -->
     <div v-if="isPublic" class="h-full flex flex-col">
       <Toast />
