@@ -77,3 +77,57 @@ interface Payment {
   // Solo para el formulario: fuerza un pago rechazado (simulación)
   simulateFailure?: Nullable<boolean>;
 }
+
+interface DashboardSummary {
+  totalRevenue: number;
+  totalOrders: number;
+  totalUsers: number;
+  totalProducts: number;
+  totalCategories: number;
+  pendingOrders: number;
+  canceledOrders: number;
+  completedSales: number;
+  averageOrderValue: number;
+  cancellationRate: number;
+}
+
+interface DashboardSalesByMonth {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
+interface DashboardOrdersByStatus {
+  status: string;
+  count: number;
+}
+
+interface DashboardTopProduct {
+  productId: string;
+  name: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+interface DashboardPaymentsByMethod {
+  method: string;
+  count: number;
+  total: number;
+}
+
+interface DashboardLowStockProduct {
+  _id: string;
+  name: string;
+  stock: number;
+  reservedStock: number;
+}
+
+interface Dashboard {
+  summary: DashboardSummary;
+  salesByMonth: DashboardSalesByMonth[];
+  ordersByStatus: DashboardOrdersByStatus[];
+  topProducts: DashboardTopProduct[];
+  paymentsByMethod: DashboardPaymentsByMethod[];
+  recentOrders: Order[];
+  lowStockProducts: DashboardLowStockProduct[];
+}
