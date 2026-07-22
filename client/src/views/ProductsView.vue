@@ -215,7 +215,7 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
             <div class="flex items-center gap-3">
               <img
                 v-if="data.images && data.images.length > 0"
-                :src="`http://localhost:5000${data.images[0]}`"
+                :src="`http://localhost:3000${data.images[0]}`"
                 :alt="data.name"
                 class="shrink-0 w-12 h-12 object-cover rounded-md shadow"
               />

@@ -27,6 +27,7 @@ export class ProductsService {
     return (
       this.productModel
         .find()
+        .sort({ createdAt: -1 })
         // Le indicamos el nombre exacto de la propiedad en nuestra clase Product
         .populate('categoryId')
         .exec()
