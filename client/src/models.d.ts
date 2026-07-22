@@ -64,3 +64,16 @@ interface Order {
   expiresAt?: Nullable<string>;
   createdAt?: Nullable<string>;
 }
+
+interface Payment {
+  _id?: Nullable<string>;
+  order: Nullable<string>;
+  amount?: Nullable<number>;
+  method: Nullable<string>;
+  status?: Nullable<string>;
+  transactionId?: Nullable<string>;
+  paidAt?: Nullable<string>;
+  createdAt?: Nullable<string>;
+  // Solo para el formulario: fuerza un pago rechazado (simulación)
+  simulateFailure?: Nullable<boolean>;
+}

@@ -167,6 +167,19 @@ export class OrdersService {
     if (!order) throw new NotFoundException(`Orden ${id} no encontrada`);
   }
 
+  // Marca una orden pendiente como pagada y convierte la reserva
+  // en salida definitiva de stock (lo usa el módulo de pagos)
+  async markAsPaid(id: string): Promise<Order> {
+    const order = await this.orderModel.findById(id).exec();
+    if (!order) throw new NotFoundException(`Orden ${id} no encontrada`);
+
+    this.assertValidTransition(order.status, 'paid');
+    await this.confirmStockDeduction(order.items);
+
+    order.status = 'paid';
+    return order.save();
+  }
+
   // Tarea programada: cada minuto cancela las órdenes pendientes cuyo
   // tiempo de pago expiró y libera su stock reservado
   @Cron(CronExpression.EVERY_MINUTE)

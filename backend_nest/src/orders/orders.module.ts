@@ -16,5 +16,6 @@ import { User, UserSchema } from '../users/user.schema';
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService], // Lo usa el módulo de pagos (markAsPaid)
 })
 export class OrdersModule {}
