@@ -84,6 +84,7 @@ function handleDelete(id: string) {
         summary: 'Producto Eliminado',
         detail: 'El producto ha sido eliminado correctamente.',
       });
+      await productsStore.fetchProducts();
     },
     reject: () => {
       console.log('Rejected');
@@ -157,6 +158,7 @@ async function handleSubmitOnProductForm(payload: { productData: Product; files:
       detail: productsStore.error,
     });
     productsStore.error = null;
+    await productsStore.fetchProducts();
   }
 }
 </script>

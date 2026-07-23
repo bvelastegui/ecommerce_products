@@ -68,6 +68,7 @@ function handleDelete(id: string) {
         summary: 'Categoría Eliminada',
         detail: 'La categoría ha sido eliminada correctamente.',
       });
+      await categoriesStore.fetchCategories();
     },
     reject: () => {
       console.log('Rejected');
@@ -111,6 +112,7 @@ async function handleSubmitOnCategoryForm(categoryData: Category) {
     });
     categoriesStore.error = null;
   }
+  await categoriesStore.fetchCategories();
 }
 </script>
 

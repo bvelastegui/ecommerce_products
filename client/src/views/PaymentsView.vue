@@ -85,6 +85,7 @@ function handleDelete(id: string) {
         summary: 'Pago Eliminado',
         detail: 'El pago ha sido eliminado correctamente.',
       });
+      await paymentsStore.fetchPayments();
     },
     reject: () => {
       console.log('Rejected');
@@ -124,6 +125,7 @@ async function handleSubmitOnPaymentForm(paymentData: Payment) {
     });
     paymentsStore.error = null;
   }
+  await paymentsStore.fetchPayments();
 }
 </script>
 
@@ -136,13 +138,13 @@ async function handleSubmitOnPaymentForm(paymentData: Payment) {
     @submit="handleSubmitOnPaymentForm"
   />
   <div class="flex-1 p-4 flex flex-col gap-4">
-    <div class="flex rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
+    <div class="flex rounded-lg bg-surface-100 dark:bg-surface-800 p-2">
       <Button class="ml-auto" @click="handleClickOnAdd">
         <Plus />
         Registrar Pago
       </Button>
     </div>
-    <div class="rounded-lg bg-surface-100 dark:bg-surface-800 p-4">
+    <div class="rounded-lg bg-surface-100 dark:bg-surface-800 p-1">
       <DataTable
         paginator
         :rows="10"

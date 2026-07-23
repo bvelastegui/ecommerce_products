@@ -59,6 +59,7 @@ function handleDelete(id: string) {
         summary: 'Usuario Eliminado',
         detail: 'El usuario ha sido eliminado correctamente.',
       });
+      await usersStore.fetchUsers();
     },
     reject: () => {
       console.log('Rejected');
@@ -120,6 +121,7 @@ async function handleSubmitOnUserForm(userData: User) {
     });
     usersStore.error = null;
   }
+  await usersStore.fetchUsers();
 }
 </script>
 

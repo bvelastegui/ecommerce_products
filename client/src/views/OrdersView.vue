@@ -104,6 +104,7 @@ function handleDelete(id: string) {
         summary: 'Venta Eliminada',
         detail: 'La venta ha sido eliminada correctamente.',
       });
+      await ordersStore.fetchOrders();
     },
     reject: () => {
       console.log('Rejected');
@@ -190,6 +191,8 @@ async function handleSubmitOnOrderForm({
     });
     ordersStore.error = null;
   }
+
+  await ordersStore.fetchOrders();
 }
 
 // Agrega la nueva dirección al documento del cliente (users.addresses).
